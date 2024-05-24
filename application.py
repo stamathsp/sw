@@ -11,24 +11,29 @@ from sklearn.cluster import KMeans
 import seaborn as sns
 
 # Title of the application
-st.title('Εφαρμογή για Ανάλυση Δεδομένων')
+st.title('Data Analysis Application')
 
 # Upload data section
-st.header('Φόρτωση Δεδομένων')
+st.header('Data Upload')
 uploaded_file = st.file_uploader("Select a file:", type=["csv", "xlsx"])
 if uploaded_file is not None:
+    # Load data based on file type
     if uploaded_file.name.endswith('.csv'):
         data = pd.read_csv(uploaded_file)
     else:
         data = pd.read_excel(uploaded_file)
-    st.write("Προεπισκόπηση δεδομένων:", data.head())
+    
+    # Display a preview of the data
+    st.write("Data Preview:", data.head())
 
-    # Check if the last column is the label
+    # Separate features and labels assuming the last column is the label
     features = data.iloc[:, :-1]
     labels = data.iloc[:, -1]
 
     # 2D Visualization Tab
     st.header('2D Visualization Tab')
+    
+    # PCA visualization
     st.subheader('PCA')
     pca = PCA(n_components=2)
     pca_result = pca.fit_transform(features)
@@ -38,6 +43,7 @@ if uploaded_file is not None:
     sns.scatterplot(x='PCA1', y='PCA2', hue=labels, data=data, ax=ax)
     st.pyplot(fig)
 
+    # t-SNE visualization
     st.subheader('t-SNE')
     tsne = TSNE(n_components=2, random_state=42)
     tsne_result = tsne.fit_transform(features)
@@ -48,13 +54,19 @@ if uploaded_file is not None:
     st.pyplot(fig)
 
     # Machine Learning Tabs
-    st.header('Tabs Μηχανικής Μάθησης')
+    st.header('Machine Learning Tabs')
 
     # Classification Tab
     st.subheader('Classification')
+    
+    # Split data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)
+    
+    # Train logistic regression classifier
     clf = LogisticRegression()
     clf.fit(X_train, y_train)
+    
+    # Predict and calculate accuracy
     y_pred = clf.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     st.write('Accuracy:', acc)
@@ -62,23 +74,21 @@ if uploaded_file is not None:
 
     # Clustering Tab
     st.subheader('Clustering')
+    
+    # Apply KMeans clustering
     kmeans = KMeans(n_clusters=3)
     kmeans.fit(features)
     clusters = kmeans.predict(features)
     data['Cluster'] = clusters
+    
+    # Visualize clusters using PCA components
     fig, ax = plt.subplots()
     sns.scatterplot(x='PCA1', y='PCA2', hue='Cluster', data=data, ax=ax)
     st.pyplot(fig)
 
     # Info Tab
-    st.header('Info Tab')
     st.write("""
-    ### Πληροφορίες Εφαρμογής
-    Αυτή η εφαρμογή δημιουργήθηκε για την ανάλυση δεδομένων χρησιμοποιώντας αλγορίθμους μηχανικής μάθησης.
-    
-    ### Ομάδα Ανάπτυξης
-    - Μέλος 1: Παύλος - Μάριος Γιαννάκος
-    - Μέλος 2: Σταμάτης Πέτρου
+    ### Development Team
+    - Member 1: Pavlos - Marios Giannakos
+    - Member 2: Stamatis Petrou
     """)
-
-# Για την διανομή μέσω Docker και GitHub, δημιουργήστε ένα Dockerfile και ανεβάστε τον κώδικα στο GitHub
